@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edudot Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>🧠 Edudot</h2>
+    <ul>
+      <li onclick="showSection('dashboard')">📊 Dashboard</li>
+      <li onclick="showSection('fee')">💰 Fee Collection</li>
+      <li onclick="showSection('log')">🕒 Teacher Logs</li>
+      <li onclick="showSection('classSection')">📚 Class Section</li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <h1>Institution Dashboard</h1>
+
+    <!-- Dashboard Section -->
+    <div class="container section" id="dashboard">
+      <div class="dashboard-tools">
+        <div class="dashboard-tool-card" onclick="showSection('fee')">
+          <h3>💰 Fee Collection</h3>
+          <p>Record and view student fee payments.</p>
+        </div>
+        <div class="dashboard-tool-card" onclick="showSection('log')">
+          <h3>🕒 Teacher Logs</h3>
+          <p>Track faculty daily class hours.</p>
+        </div>
+        <div class="dashboard-tool-card" onclick="showSection('classSection')">
+          <h3>📚 Class Section</h3>
+          <p>View student lists by class or search individually.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fee Collection Section -->
+    <div class="container section" id="fee" style="display: none">
+      <button class="back-to-dashboard" onclick="showSection('dashboard')">← Back to Dashboard</button>
+      <div class="card">
+        <h2>💰 Fee Collection</h2>
+        <form id="feeForm">
+          <select id="classSelect" required>
+            <option value="">Select Class</option>
+            <option value="10th_meta">10th Meta</option>
+            <option value="10th_zeta">10th Zeta</option>
+            <option value="10th_beta">10th Beta</option>
+            <option value="9th">9th</option>
+            <option value="8th">8th</option>
+          </select>
+	<select id="studentSelect" required>
+            <option value="">Select Student</option>
+          </select>
+          <select id="MonthSelect" required>
+            <option value="">Select Month</option>
+          </select>
+
+          <input type="date" id="paymentDate" required />
+
+          <input type="number" id="amount" placeholder="Amount Paid (₹)" required />
+          <button type="submit">Collect Fee</button>
+        </form>
+        <div id="receiptContainer" style="display: none; margin-top: 20px;">
+          <div id="receiptContent">
+            <h2>Edudot Puthooramdam</h2>
+            <hr>
+            <p><strong>Date:</strong> <span id="receiptDate"></span></p>
+            <p><strong>Student:</strong> <span id="receiptStudent"></span></p>
+            <p><strong>Class:</strong> <span id="receiptClass"></span></p>
+            <p><strong>Month:</strong> <span id="receiptMonth"></span></p>
+            <p><strong>Amount Paid:</strong> ₹<span id="receiptAmount"></span></p>
+          </div>
+          <button onclick="downloadReceiptImage()">Download Receipt (JPEG)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Faculty Log Section -->
+    <div class="container section" id="log" style="display: none">
+      <button class="back-to-dashboard" onclick="showSection('dashboard')">← Back to Dashboard</button>
+      <div class="card">
+        <h2>🕒 Faculty Daily Log</h2>
+        <form id="dashboardLogForm">
+          <input type="date" id="logDate" required />
+<select id="dashTeacherId" required>
+  <option value="">Select Faculty</option>
+  <option value="Munavar Ali">Munavar Ali</option>
+  <option value="Muhammed Jifri">Muhammed Jifri</option>
+  <option value="Sajeel P">Sajeel P</option>
+  <option value="Kartik">Kartik</option>
+  <option value="Adhi Shifana">Adhi Shifana</option>
+  <option value="Kavya">Kavya</option>
+  <option value="Muzammil">Muzammil</option>
+  <option value="Megha">Megha</option>
+  <option value="Famida">Famida</option>
+  <option value="Amrutha">Amrutha</option>
+  <option value="Anajna V">Anajna V</option>
+</select>
+          <select id="classSelectLog" required>
+            <option value="">Select Class</option>
+            <option value="10th_meta">10th Meta</option>
+            <option value="10th_zeta">10th Zeta</option>
+            <option value="10th_beta">10th Beta</option>
+            <option value="9th">9th</option>
+            <option value="8th">8th</option>
+          </select>
+          <input type="number" id="dashDuration" step="0.25" placeholder="Duration (hrs)" required />
+          <button type="submit">Submit Log</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Class Section -->
+    <div class="container section" id="classSection" style="display: none">
+      <button class="back-to-dashboard" onclick="showSection('dashboard')">← Back to Dashboard</button>
+      <div class="card">
+        <h2>📚 Class Viewer</h2>
+        <div class="class-list">
+	  <button onclick="filterClassDisplay('individual')">🔍 Search Student</button>
+          <button onclick="filterClassDisplay('10th_meta')">10th Meta</button>
+          <button onclick="filterClassDisplay('10th_zeta')">10th Zeta</button>
+          <button onclick="filterClassDisplay('10th_beta')">10th Beta</button>
+          <button onclick="filterClassDisplay('9th')">9th</button>
+          <button onclick="filterClassDisplay('8th')">8th</button>
+         
+        </div>
+        <div id="individualSearch" style="margin-top: 1rem; display: none;">
+          <input type="text" id="searchName" placeholder="Enter Name or Phone" />
+          <button onclick="searchIndividualStudent()">Search</button>
+        </div>
+        <div id="classDisplayArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const paymentDateField = document.getElementById("paymentDate");
+      const logDateField = document.getElementById("logDate");
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const isoDate = `${yyyy}-${mm}-${dd}`;
+
+      if (paymentDateField) paymentDateField.value = isoDate;
+      if (logDateField) logDateField.value = isoDate;
+
+      const monthSelect = document.getElementById("MonthSelect");
+      if (monthSelect && monthSelect.options.length === 1) {
+        const months = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"];
+        months.forEach(month => {
+          const opt = document.createElement("option");
+          opt.value = month;
+          opt.textContent = month;
+          monthSelect.appendChild(opt);
+        });
+      }
+
+      document.getElementById("feeForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const student = document.getElementById("studentSelect").value;
+        const className = document.getElementById("classSelect").value;
+        const month = document.getElementById("MonthSelect").value;
+        const date = document.getElementById("paymentDate").value;
+        const amount = document.getElementById("amount").value;
+
+        document.getElementById("receiptDate").textContent = date;
+        document.getElementById("receiptStudent").textContent = student;
+        document.getElementById("receiptClass").textContent = className;
+        document.getElementById("receiptMonth").textContent = month;
+        document.getElementById("receiptAmount").textContent = amount;
+
+        document.getElementById("receiptContainer").style.display = "block";
+      });
+    });
+
+    function downloadReceiptImage() {
+      const receipt = document.getElementById("receiptContent");
+      html2canvas(receipt).then(canvas => {
+        const link = document.createElement("a");
+        link.download = 'fee_receipt.jpeg';
+        link.href = canvas.toDataURL("image/jpeg", 1.0);
+        link.click();
+      });
+    }
+  </script>
+</body>
+</html>
